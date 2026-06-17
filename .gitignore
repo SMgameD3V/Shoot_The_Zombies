@@ -8,6 +8,8 @@ MemoryCaptures/
 
 UserSettings/
 
+Assets/_Recovery/
+
 *.csproj
 *.unityproj
 *.sln
