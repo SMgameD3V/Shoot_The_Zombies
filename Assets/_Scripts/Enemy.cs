@@ -64,42 +64,41 @@ public class Enemy : LivingEntity {
         }
     }
 
-    public override void TakeHit(float damage, Vector3 hitPoint, Vector3 hitDirection) {
-        AudioManager.instance.PlaySound("Impact", transform.position);
+    public override void TakeHit(float damage, Vector3 hitPoint, Vector3 hitDirection) 
+	{
+		AudioManager.instance.PlaySound("Impact", transform.position);
 
-        if (damage >= health && !dead) {
-            animator.speed = 1f;
-            animator.SetTrigger("Die");
+		if (damage >= health && !dead) {
+			animator.speed = 1f;
+			animator.SetTrigger("Die");
 
-            pathfinder.enabled = false;
-            pathfinder.velocity = Vector3.zero;
+			pathfinder.enabled = false;
+			pathfinder.velocity = Vector3.zero;
 
-            Rigidbody rb = GetComponent<Rigidbody>();
-            if (rb != null) {
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-                rb.isKinematic = true;
-            }
+			Rigidbody rb = GetComponent<Rigidbody>();
+			if (rb != null) {
+				rb.linearVelocity = Vector3.zero;
+				rb.angularVelocity = Vector3.zero;
+				rb.isKinematic = true;
+			}
 
-            if (OnDeathStatic != null) {
-                OnDeathStatic();
-            }
-            AudioManager.instance.PlaySound("Enemy Death", transform.position);
+			if (OnDeathStatic != null) OnDeathStatic();
+			AudioManager.instance.PlaySound("Enemy Death", transform.position);
 
-            if (deathEffect != null) {
-                Destroy(
-                    Instantiate(deathEffect.gameObject, hitPoint,
-                        Quaternion.FromToRotation(Vector3.forward, hitDirection)) as GameObject,
-                    deathEffect.main.startLifetime.constantMax
-                );
-            }
-        } else {
-            animator.speed = 1f;
-            animator.SetTrigger("Hit");
-        }
+			if (deathEffect != null) {
+				Destroy(Instantiate(deathEffect.gameObject, hitPoint,
+					Quaternion.FromToRotation(Vector3.forward, hitDirection)) as GameObject,
+					deathEffect.main.startLifetime.constantMax);
+			}
+		} else {
+			// Only play hit reaction if not already attacking or reacting
+			if (currentState != State.Attacking) {
+				StartCoroutine(HitReaction());
+			}
+		}
 
-        base.TakeHit(damage, hitPoint, hitDirection);
-    }
+		base.TakeHit(damage, hitPoint, hitDirection);
+	}
 
     void OnTargetDeath() {
         hasTarget = false;
@@ -115,7 +114,7 @@ public class Enemy : LivingEntity {
             // Only scale animation speed during chasing so walk feet match movement
             // Tune the 0.5f in Play mode until feet don't slide
             if (currentState == State.Chasing) {
-                animator.speed = (speed > 0.1f) ? speed * 0.5f : 1f;
+                animator.speed = (speed > 0.1f) ? speed * 0.3f : 1f;
             }
 
             if (currentState != State.Attacking && Time.time > nextAttackTime) {
@@ -153,7 +152,7 @@ public class Enemy : LivingEntity {
         AudioManager.instance.PlaySound("Enemy Attack", transform.position);
 
         // Wait for animation midpoint (~1.1s) then check and apply damage
-        yield return new WaitForSeconds(1.1f);
+        yield return new WaitForSeconds(2f);
 
         if (hasTarget && !dead) {
             float sqrDst = (target.position - transform.position).sqrMagnitude;
@@ -183,4 +182,24 @@ public class Enemy : LivingEntity {
             yield return new WaitForSeconds(refreshRate);
         }
     }
+	IEnumerator HitReaction() 
+	{
+		currentState = State.Attacking; // borrow Attacking state to block movement
+
+		// Stop zombie in place
+		pathfinder.enabled = false;
+		pathfinder.velocity = Vector3.zero;
+
+		animator.speed = 1.5f;
+		animator.SetTrigger("Hit");
+
+		// Wait for hit animation duration (yours is 1:29 = 1.48s)
+		yield return new WaitForSeconds(1f);
+
+		// Resume chasing if still alive
+		if (!dead) {
+			currentState = State.Chasing;
+			pathfinder.enabled = true;
+		}
+	}
 }
