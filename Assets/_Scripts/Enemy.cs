@@ -2,184 +2,185 @@
 using System.Collections;
 using UnityEngine.AI;
 
-[RequireComponent (typeof (NavMeshAgent))]
+[RequireComponent(typeof(NavMeshAgent))]
 public class Enemy : LivingEntity {
 
-	public enum State {Idle, Chasing, Attacking};
-	State currentState;
+    public enum State { Idle, Chasing, Attacking };
+    State currentState;
 
-	public ParticleSystem deathEffect;
-	public static event System.Action OnDeathStatic;
+    public ParticleSystem deathEffect;
+    public static event System.Action OnDeathStatic;
 
-	NavMeshAgent pathfinder;
-	Transform target;
-	LivingEntity targetEntity;
-	Material skinMaterial;
+    NavMeshAgent pathfinder;
+    Transform target;
+    LivingEntity targetEntity;
 
-	Color originalColour;
+    float attackDistanceThreshold = .5f;
+    float timeBetweenAttacks = 2.2f;
+    float damage = 1f;
 
-	float attackDistanceThreshold = .5f;
-	float timeBetweenAttacks = 2.2f; // matches 2:18 attack animation length
-	float damage = 1f;
+    float nextAttackTime;
+    float myCollisionRadius;
+    float targetCollisionRadius;
+    bool hasTarget;
+    Animator animator;
 
-	float nextAttackTime;
-	float myCollisionRadius;
-	float targetCollisionRadius;
-	bool hasTarget;
-	Animator animator;
+    void Awake() {
+        // Animator is now directly on this GameObject — no GetComponentInChildren needed
+        animator = GetComponent<Animator>();
+        pathfinder = GetComponent<NavMeshAgent>();
 
-	void Awake() {
-		animator = GetComponentInChildren<Animator>();
-		pathfinder = GetComponent<NavMeshAgent>();
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null) {
+            hasTarget = true;
+            target = playerObj.transform;
+            targetEntity = target.GetComponent<LivingEntity>();
+            myCollisionRadius = GetComponent<CapsuleCollider>().radius;
+            targetCollisionRadius = target.GetComponent<CapsuleCollider>().radius;
+        }
+    }
 
-		if (GameObject.FindGameObjectWithTag("Player").transform != null) {
-			hasTarget = true;
+    protected override void Start() {
+        base.Start();
 
-			target = GameObject.FindGameObjectWithTag("Player").transform;
-			targetEntity = target.GetComponent<LivingEntity>();
+        if (hasTarget) {
+            currentState = State.Chasing;
+            targetEntity.OnDeath += OnTargetDeath;
+            StartCoroutine(UpdatePath());
+        }
+    }
 
-			myCollisionRadius = GetComponent<CapsuleCollider>().radius;
-			targetCollisionRadius = target.GetComponent<CapsuleCollider>().radius;
-		}
-	}
+    public void SetCharacteristics(float moveSpeed, int hitsToKillPlayer, float enemyHealth, Color skinColor) {
+        pathfinder.speed = moveSpeed;
+        if (hasTarget) {
+            damage = Mathf.Ceil(targetEntity.startingHealth / hitsToKillPlayer);
+        }
+        startingHealth = enemyHealth;
 
-	protected override void Start () {
-		base.Start();
+        // Death particle is always red to look like blood — skinColor ignored
+        if (deathEffect != null) {
+            var main = deathEffect.main;
+            main.startColor = Color.red;
+        }
+    }
 
-		if (hasTarget) {
-			currentState = State.Chasing;
-			targetEntity.OnDeath += OnTargetDeath;
-			StartCoroutine(UpdatePath());
-		}
-	}
+    public override void TakeHit(float damage, Vector3 hitPoint, Vector3 hitDirection) {
+        AudioManager.instance.PlaySound("Impact", transform.position);
 
-	public void SetCharacteristics(float moveSpeed, int hitsToKillPlayer, float enemyHealth, Color skinColor) {
-		pathfinder.speed = moveSpeed;
-		if (hasTarget) {
-			damage = Mathf.Ceil(targetEntity.startingHealth / hitsToKillPlayer);
-		}
-		startingHealth = enemyHealth;
-		deathEffect.startColor = new Color(skinColor.r, skinColor.g, skinColor.b, 1);
-		skinMaterial = GetComponent<Renderer>().material;
-		skinMaterial.color = skinColor;
-		originalColour = skinMaterial.color;
-	}
+        if (damage >= health && !dead) {
+            animator.speed = 1f;
+            animator.SetTrigger("Die");
 
-	public override void TakeHit(float damage, Vector3 hitPoint, Vector3 hitDirection) {
-		AudioManager.instance.PlaySound("Impact", transform.position);
-		if (damage >= health && !dead) {
-			// Reset animator speed so death plays at normal speed
-			animator.speed = 1f;
-			animator.SetTrigger("Die");
+            pathfinder.enabled = false;
+            pathfinder.velocity = Vector3.zero;
 
-			// Stop all movement immediately
-			pathfinder.enabled = false;
-			pathfinder.velocity = Vector3.zero;
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null) {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.isKinematic = true;
+            }
 
-			// Kill Rigidbody momentum so corpse doesn't slide
-			Rigidbody rb = GetComponent<Rigidbody>();
-			if (rb != null) {
-				rb.linearVelocity = Vector3.zero;
-				rb.angularVelocity = Vector3.zero;
-				rb.isKinematic = true;
-			}
+            if (OnDeathStatic != null) {
+                OnDeathStatic();
+            }
+            AudioManager.instance.PlaySound("Enemy Death", transform.position);
 
-			if (OnDeathStatic != null) {
-				OnDeathStatic();
-			}
-			AudioManager.instance.PlaySound("Enemy Death", transform.position);
-			Destroy(Instantiate(deathEffect.gameObject, hitPoint, Quaternion.FromToRotation(Vector3.forward, hitDirection)) as GameObject, deathEffect.startLifetime);
-		} else {
-			// Reset speed before hit reaction so it plays correctly
-			animator.speed = 1f;
-			animator.SetTrigger("Hit");
-		}
-		base.TakeHit(damage, hitPoint, hitDirection);
-	}
+            if (deathEffect != null) {
+                Destroy(
+                    Instantiate(deathEffect.gameObject, hitPoint,
+                        Quaternion.FromToRotation(Vector3.forward, hitDirection)) as GameObject,
+                    deathEffect.main.startLifetime.constantMax
+                );
+            }
+        } else {
+            animator.speed = 1f;
+            animator.SetTrigger("Hit");
+        }
 
-	void OnTargetDeath() {
-		hasTarget = false;
-		currentState = State.Idle;
-		animator.SetFloat("Speed", 0f);
-	}
+        base.TakeHit(damage, hitPoint, hitDirection);
+    }
 
-	void Update() 
-	{
-		if (hasTarget) {
-			float speed = pathfinder.velocity.magnitude;
-			animator.SetFloat("Speed", speed);
+    void OnTargetDeath() {
+        hasTarget = false;
+        currentState = State.Idle;
+        animator.SetFloat("Speed", 0f);
+    }
 
-			// Only scale animator speed during chase, not attack
-			if (currentState == State.Chasing) {
-				animator.speed = (speed > 0.1f) ? speed * 0.5f : 1f;
-			}
+    void Update() {
+        if (hasTarget) {
+            float speed = pathfinder.velocity.magnitude;
+            animator.SetFloat("Speed", speed);
 
-			if (currentState != State.Attacking && Time.time > nextAttackTime) {
-				float sqrDstToTarget = (target.position - transform.position).sqrMagnitude;
-				float attackRange = attackDistanceThreshold + myCollisionRadius + targetCollisionRadius;
-				if (sqrDstToTarget < Mathf.Pow(attackRange, 2)) {
-					nextAttackTime = Time.time + timeBetweenAttacks;
-					StartCoroutine(Attack());
-				}
-			}
-		}
-	}
+            // Only scale animation speed during chasing so walk feet match movement
+            // Tune the 0.5f in Play mode until feet don't slide
+            if (currentState == State.Chasing) {
+                animator.speed = (speed > 0.1f) ? speed * 0.5f : 1f;
+            }
 
-	IEnumerator Attack() 
-	{
-		currentState = State.Attacking;
+            if (currentState != State.Attacking && Time.time > nextAttackTime) {
+                float sqrDstToTarget = (target.position - transform.position).sqrMagnitude;
+                float attackRange = attackDistanceThreshold + myCollisionRadius + targetCollisionRadius;
+                if (sqrDstToTarget < Mathf.Pow(attackRange, 2)) {
+                    nextAttackTime = Time.time + timeBetweenAttacks;
+                    StartCoroutine(Attack());
+                }
+            }
+        }
+    }
 
-		// Fully stop movement before playing animation
-		pathfinder.enabled = false;
-		pathfinder.velocity = Vector3.zero;
+    IEnumerator Attack() {
+        currentState = State.Attacking;
 
-		// Face the player before attacking
-		if (hasTarget) {
-			Vector3 dir = (target.position - transform.position).normalized;
-			dir.y = 0;
-			transform.rotation = Quaternion.LookRotation(dir);
-		}
+        pathfinder.enabled = false;
+        pathfinder.velocity = Vector3.zero;
 
-		// Reset speed so attack animation plays at correct speed
-		animator.speed = 1f;
+        // Face the player squarely before attacking
+        if (hasTarget) {
+            Vector3 dir = (target.position - transform.position).normalized;
+            dir.y = 0;
+            transform.rotation = Quaternion.LookRotation(dir);
+        }
 
-		// Small delay so zombie fully stops before animation triggers
-		yield return new WaitForSeconds(0.1f);
+        // Reset to normal speed so attack animation plays correctly
+        animator.speed = 1f;
 
-		// NOW trigger the animation and sound together
-		animator.SetTrigger("Attack");
-		AudioManager.instance.PlaySound("Enemy Attack", transform.position);
+        // Brief pause so zombie fully stops before animation triggers
+        yield return new WaitForSeconds(0.1f);
 
-		// Wait for animation midpoint then apply damage
-		yield return new WaitForSeconds(1.1f);
+        // Trigger animation and sound on the same frame so they are in sync
+        animator.SetTrigger("Attack");
+        AudioManager.instance.PlaySound("Enemy Attack", transform.position);
 
-		if (hasTarget && !dead) {
-			float sqrDst = (target.position - transform.position).sqrMagnitude;
-			float range = attackDistanceThreshold + myCollisionRadius + targetCollisionRadius;
-			if (sqrDst < range * range) {
-				targetEntity.TakeDamage(damage);
-			}
-		}
+        // Wait for animation midpoint (~1.1s) then check and apply damage
+        yield return new WaitForSeconds(1.1f);
 
-		// Wait for rest of animation
-		yield return new WaitForSeconds(1.0f);
+        if (hasTarget && !dead) {
+            float sqrDst = (target.position - transform.position).sqrMagnitude;
+            float range = attackDistanceThreshold + myCollisionRadius + targetCollisionRadius;
+            if (sqrDst < range * range) {
+                targetEntity.TakeDamage(damage);
+            }
+        }
 
-		currentState = State.Chasing;
-		pathfinder.enabled = true;
-	}
+        // Wait for second half of animation before resuming movement
+        yield return new WaitForSeconds(1.0f);
 
-	IEnumerator UpdatePath() {
-		float refreshRate = .25f;
+        currentState = State.Chasing;
+        pathfinder.enabled = true;
+    }
 
-		while (hasTarget) {
-			if (currentState == State.Chasing) {
-				Vector3 dirToTarget = (target.position - transform.position).normalized;
-				Vector3 targetPosition = target.position - dirToTarget * (myCollisionRadius + targetCollisionRadius + attackDistanceThreshold / 2);
-				if (!dead) {
-					pathfinder.SetDestination(targetPosition);
-				}
-			}
-			yield return new WaitForSeconds(refreshRate);
-		}
-	}
+    IEnumerator UpdatePath() {
+        float refreshRate = .25f;
+
+        while (hasTarget) {
+            if (currentState == State.Chasing && !dead) {
+                Vector3 dirToTarget = (target.position - transform.position).normalized;
+                Vector3 targetPosition = target.position - dirToTarget *
+                    (myCollisionRadius + targetCollisionRadius + attackDistanceThreshold / 2);
+                pathfinder.SetDestination(targetPosition);
+            }
+            yield return new WaitForSeconds(refreshRate);
+        }
+    }
 }
