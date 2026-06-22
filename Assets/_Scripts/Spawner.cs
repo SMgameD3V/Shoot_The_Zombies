@@ -93,7 +93,7 @@ public class Spawner : MonoBehaviour {
 
 		Enemy spawnedEnemy = Instantiate(enemy, spawnTile.position + Vector3.up, Quaternion.identity) as Enemy;
 		spawnedEnemy.OnDeath += OnEnemyDeath;
-		spawnedEnemy.SetCharacteristics(currentWave.moveSpeed, currentWave.hitsToKillPlayer, currentWave.enemyHealth, currentWave.skinColor);
+		spawnedEnemy.SetCharacteristics(currentWave.moveSpeed, currentWave.hitsToKillPlayer, currentWave.enemyHealth);
 	}
 
 	void OnPlayerDeath() {
@@ -151,7 +151,6 @@ public class Spawner : MonoBehaviour {
 		public float moveSpeed;
 		public int hitsToKillPlayer;
 		public float enemyHealth;
-		public Color skinColor; 
 	}
 
 }

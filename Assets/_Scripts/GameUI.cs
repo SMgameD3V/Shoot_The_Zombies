@@ -45,7 +45,7 @@ public class GameUI : MonoBehaviour
         {
             healthPercent = player.health / player.startingHealth;
         }
-        healthBar.localScale = new Vector3(healthPercent, 1, 1);
+        healthBar.localScale = new Vector3(healthPercent, 1.45125f, 1);
 
         
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -93,7 +93,7 @@ public class GameUI : MonoBehaviour
     void OnNewWave(int waveNumber)
     {
         string[] numbers = { "One", "Two", "Three", "Four", "Five" };
-        newWaveTitle.text = "- Wave " + numbers[waveNumber - 1] + " -";
+        newWaveTitle.text = "Wave " + numbers[waveNumber - 1];
         string enemyCountString = ((spawner.waves[waveNumber - 1].infinite) ? "Infinite" : spawner.waves[waveNumber - 1].enemyCount + "");
         newWabeEnemyCount.text = "Enemies: " + enemyCountString;
 

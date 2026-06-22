@@ -50,7 +50,7 @@ public class Enemy : LivingEntity {
         }
     }
 
-    public void SetCharacteristics(float moveSpeed, int hitsToKillPlayer, float enemyHealth, Color skinColor) {
+    public void SetCharacteristics(float moveSpeed, int hitsToKillPlayer, float enemyHealth) {
         pathfinder.speed = moveSpeed;
         if (hasTarget) {
             damage = Mathf.Ceil(targetEntity.startingHealth / hitsToKillPlayer);
