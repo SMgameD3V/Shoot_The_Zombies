@@ -134,7 +134,7 @@ public class GameUI : MonoBehaviour
         isPaused = false;
 
         Cursor.visible = true;
-        StartCoroutine(Fade(Color.clear, new Color(0, 0, 0, .95f), 1f));
+        StartCoroutine(Fade(Color.clear, new Color(0, 0, 0, 1f), 1f));
         gameOverScoreText.text = scoreUIText.text;
         scoreUIText.gameObject.SetActive(false);
         healthBar.transform.parent.gameObject.SetActive(false);
