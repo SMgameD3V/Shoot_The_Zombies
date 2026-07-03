@@ -18,6 +18,7 @@ public class GameUI : MonoBehaviour
 
     
     public GameObject pauseUI;
+    public GameObject controlPanel;
 
     Spawner spawner;
     Player player;
@@ -59,6 +60,10 @@ public class GameUI : MonoBehaviour
                     PauseGame();
             }
         }
+        if(Input.GetKeyDown(KeyCode.F))
+        {
+            ToggleControlPanel();
+        }
     }
 
     public void PauseGame()
@@ -75,7 +80,11 @@ public class GameUI : MonoBehaviour
         StartCoroutine(Fade(Color.clear, new Color(0, 0, 0, 1f), 0.5f));
     }
 
-    
+    public void ToggleControlPanel()
+    {
+        bool isActive = controlPanel.activeSelf;
+        controlPanel.SetActive(!isActive);
+    }
     public void ResumeGame()
     {
         isPaused = false;
