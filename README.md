@@ -1,4 +1,4 @@
-# 🧟 Shoot The Zombies
+# Shoot The Zombies
 
 <p align="center">
 
@@ -13,12 +13,12 @@
 A <b>3D wave-based zombie survival shooter</b> developed in Unity as part of my game development learning journey.
 </p>
 
-> **📖 Learning Project**  
+> ** Learning Project**  
 > This project was created by following **Sebastian Lague's** excellent **Top Down Shooter** Unity tutorial series. During the learning process, I customized the project by redesigning the user interface, creating menus, adding UI animations, and polishing the overall presentation to strengthen my understanding of Unity game development.
 
 ---
 
-# 📖 Overview
+# Overview
 
 **Shoot The Zombies** is a 3D wave-based zombie survival shooter built in **Unity** to learn the fundamentals of gameplay programming and game architecture.
 
@@ -26,7 +26,7 @@ The project introduced me to player movement, shooting mechanics, enemy AI, proc
 
 ---
 
-# 📸 Screenshots
+# Screenshots
 
 <p align="center">
     <img src="Screenshots/MainMenu.png" width="450">
@@ -42,24 +42,23 @@ The project introduced me to player movement, shooting mechanics, enemy AI, proc
 
 ---
 
-# ✨ Features
+# Features
 
-- 🧟 Wave-Based Zombie Survival
-- 🗺️ Procedural Map Generation
-- 🤖 NavMesh Powered Enemy AI
-- 🔫 Shooting & Reload Mechanics
-- 💥 Projectile-Based Weapon System
-- 📈 Score Tracking
-- 🎵 Audio Management
-- 🛠️ Custom Map Editor
-- 🎨 Custom UI & Menu Design
-- ✨ UI Animations
+-  Wave-Based Zombie Survival
+-  Procedural Map Generation
+-  NavMesh Powered Enemy AI
+-  Shooting & Reload Mechanics
+-  Projectile-Based Weapon System
+-  Score Tracking
+-  Audio Management
+-  Custom Map Editor
+-  Custom UI & Menu Design
 
 ---
 
-# 🎯 Gameplay Systems
+# Gameplay Systems
 
-### 🎮 Player
+### Player
 
 - Character movement
 - Weapon handling
@@ -67,20 +66,20 @@ The project introduced me to player movement, shooting mechanics, enemy AI, proc
 - Reload mechanics
 - Health system
 
-### 🤖 Enemy AI
+### Enemy AI
 
 - NavMesh pathfinding
 - Player chasing
 - Enemy attacks
 - Wave spawning
 
-### 🗺️ Procedural Generation
+### Procedural Generation
 
 - Random map generation
 - Dynamic obstacle placement
 - Custom map editor
 
-### 🖥️ User Interface
+### User Interface
 
 - Main Menu
 - Options Menu
@@ -89,11 +88,10 @@ The project introduced me to player movement, shooting mechanics, enemy AI, proc
 - Wave Counter
 - Pause Menu
 - Game Over Screen
-- Animated UI Elements
 
 ---
 
-# 🛠️ Technologies Used
+# Technologies Used
 
 | Category | Technologies |
 |----------|--------------|
@@ -105,7 +103,7 @@ The project introduced me to player movement, shooting mechanics, enemy AI, proc
 
 ---
 
-# 🎮 Controls
+# Controls
 
 | Action | Key |
 |--------|-----|
@@ -118,20 +116,20 @@ The project introduced me to player movement, shooting mechanics, enemy AI, proc
 
 ---
 
-# 📚 What I Learned
+# What I Learned
 
 - Unity Gameplay Programming Fundamentals
 - Player & Enemy System Architecture
 - AI Navigation using Unity NavMesh
 - Procedural Map Generation
 - Wave Management Systems
-- UI Design & Animation
+- UI Design
 - Organizing Unity Projects
 - Writing Clean C# Scripts
 
 ---
 
-# 🚀 Future Improvements
+# Future Improvements
 
 - Multiple weapon types
 - Boss enemies
@@ -142,22 +140,7 @@ The project introduced me to player movement, shooting mechanics, enemy AI, proc
 
 ---
 
-# 📂 Project Structure
-
-```text
-Assets
-│
-├── Scripts
-├── Prefabs
-├── Materials
-├── Animations
-├── Audio
-└── Scenes
-```
-
----
-
-# 🙏 Acknowledgements
+# Acknowledgements
 
 This project follows the excellent **Top Down Shooter** Unity tutorial series created by **Sebastian Lague**.
 
@@ -167,7 +150,7 @@ Special thanks to **Sebastian Lague** for creating high-quality educational cont
 
 ---
 
-# 👨‍💻 My Contribution
+# My Contribution
 
 Although the core gameplay follows the tutorial series, I customized the project by:
 
@@ -180,5 +163,5 @@ Although the core gameplay follows the tutorial series, I customized the project
 ---
 
 <p align="center">
-⭐ If you found this project interesting, consider giving it a star!
+ If you found this project interesting, consider giving it a star!
 </p>
